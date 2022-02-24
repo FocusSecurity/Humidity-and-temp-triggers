@@ -1,0 +1,40 @@
+#include <dht.h>
+
+dht DHT;
+
+#define DHT11_PIN 13
+float tempc; 
+float humidity;
+int pump = 2;      // digital pin where the relay is plugged in
+int threshold = 50;  //threshold value to trigger pump
+int BetweenCheck = 5000;
+
+void setup(){
+  Serial.begin(115200);
+  pinMode(pump, OUTPUT);
+  Serial.println("Reading From the Sensor ...");
+  delay(1000);  //1 second delay
+}
+
+void loop(){
+  int chk = DHT.read11(DHT11_PIN);
+  Serial.print("Humidity = ");
+  Serial.println(DHT.humidity);
+  delay(1000);
+
+ if (humidity < threshold)  //if the soil is try then pump out water for 1 second
+    {
+    digitalWrite(pump, LOW);
+    Serial.println("Humidifier on");
+    delay(1000);  //run pump for 1 second;
+    digitalWrite(pump, HIGH);
+    Serial.println("Humidifier off");
+    delay(BetweenCheck); //wait 5 minutes 
+    }
+    else
+    {
+    digitalWrite(pump, HIGH);
+    Serial.println("do not turn on Humidifier");
+    delay(BetweenCheck); //wait 5 minutes
+    }
+}
