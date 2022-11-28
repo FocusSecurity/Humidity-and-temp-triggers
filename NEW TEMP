@@ -1,0 +1,95 @@
+//Libraries
+#include <DHT.h>;
+//I2C LCD:
+#include <LiquidCrystal_I2C.h>
+#include <Wire.h>
+
+LiquidCrystal_I2C lcd(0x3F, 20, 4);
+
+#define DHTPIN 2     // what pin we're connected to
+#define DHTTYPE DHT22   // DHT 22
+DHT dht(DHTPIN, DHTTYPE); //// Initialize DHT sensor for normal 16mhz Arduino
+
+int fan = 3;      // digital pin where the relay is plugged in
+int humidifier = 4;
+int heater = 5;
+int thresholdT = 25;  //threshold value to trigger Fan
+int thresholdH = 50; //threshold value to trigger Humidifier
+int BetweenCheck = 1000; //(300000sec is 5min) time between checking moisture lvl and turning on pump
+float humidity;
+float tempC;
+int output_value;
+
+void setup(){
+  Serial.begin(115200);
+  pinMode(fan, OUTPUT);      //setup for the pump aka   OUTPUT
+  pinMode(humidifier, OUTPUT);
+  pinMode(heater, OUTPUT);
+  Serial.println("Reading From the Sensor ...");
+  dht.begin();
+  lcd.init(); //initialize the lcd
+  lcd.backlight(); //open the backlight
+  delay(1000);
+}
+
+void loop(){
+  int chk = DHT.read11(DHT22_PIN);
+  //output_value = digitalRead(DHT11_PIN); 
+  Serial.print("Temperature = ");
+  Serial.println(DHT.temperature);
+  Serial.print("Humidity = ");
+  Serial.println(DHT.humidity);
+  delay(1000);
+   if (DHT.temperature < thresholdT)  //if the soil is try then pump out water for 1 second
+    {
+    digitalWrite(heater, LOW);
+    Serial.println("pump on"); 
+    }
+    else
+    {
+    digitalWrite(heater, HIGH);
+    Serial.println("do not turn on pump");
+    delay(1000);
+    }
+   if (DHT.temperature > thresholdT)  //if the soil is try then pump out water for 1 second
+    {
+    digitalWrite(fan, LOW);
+    Serial.println("pump on"); 
+    }
+    else
+    {
+    digitalWrite(fan, HIGH);
+    Serial.println("do not turn on pump");
+    delay(1000);
+    }
+    if (DHT.humidity < thresholdH)  //if the soil is try then pump out water for 1 second
+    {
+    digitalWrite(humidifier, LOW);
+    Serial.println("pump on"); 
+    }
+    else
+    {
+    digitalWrite(humidifier, HIGH);
+    Serial.println("do not turn on pump");
+    delay(1000);
+    }
+    //Print temp and humidity values to serial monitor
+    Serial.print("Humidity: ");
+    Serial.print(h);
+    Serial.print(" %, Temp: ");
+    Serial.print(t);
+    Serial.println(" ° Celsius");
+        
+// set the cursor to (0,0):
+// print from 0 to 9:
+    
+    lcd.setCursor(0, 0);
+    lcd.print("Temp:");
+    lcd.print(t);
+    lcd.print("C");
+     
+    lcd.setCursor(10, 0);
+    lcd.print("Humid:");
+    lcd.print(h);
+    lcd.print("%");
+}
