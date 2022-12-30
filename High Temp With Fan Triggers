@@ -1,0 +1,133 @@
+//Libraries
+#include <DHT.h>;
+//I2C LCD:
+#include <LiquidCrystal_I2C.h>
+#include <Wire.h>
+
+float tempc;  
+float vout;  
+
+LiquidCrystal_I2C lcd(0x3F, 20, 4);
+  
+//Constants
+#define DHTPIN 2     // what pin we're connected to
+#define DHTTYPE DHT22   // DHT 22
+DHT dht(DHTPIN, DHTTYPE); //// Initialize DHT sensor for normal 16mhz Arduino
+
+//Variables
+//int chk;
+int fanout = 4;
+int humidifier = 5;
+int heater = 3;
+int fanin = 6;
+int h;  //Stores humidity value
+int t; //Stores temperature value
+int thresholdT = 23;  //threshold value to trigger Heater
+int thresholdTH = 25;  //threshold value to trigger Fan
+int thresholdH = 45; //threshold value to trigger Humidifier
+int thresholdHH = 50; //threshold value to trigger Humidifier
+
+
+void setup()
+{
+    Serial.begin(9600);
+    pinMode(fanout, OUTPUT);
+    pinMode(fanin, OUTPUT);
+    pinMode(humidifier, OUTPUT);
+    pinMode(heater, OUTPUT);
+    pinMode(fanout, OUTPUT);
+    pinMode(fanin, OUTPUT);
+    digitalWrite(humidifier, HIGH);
+    digitalWrite(heater, HIGH);
+    Serial.println("Temperature and Humidity Sensor Test");
+    dht.begin();
+    lcd.init(); //initialize the lcd
+    lcd.backlight(); //open the backlight
+    delay(1000);
+}
+
+void loop()
+{
+    //Read data and store it to variables h (humidity) and t (temperature)
+    // Reading temperature or humidity takes about 250 milliseconds!
+
+    //Low Temp to trigger heater
+    if (t < thresholdT)  //if the soil is try then pump out water for 1 second
+    {
+    digitalWrite(heater, LOW);
+    Serial.println("heater on");
+    }
+    else
+    {
+    digitalWrite(heater, HIGH);
+    Serial.println("heater off");
+    }
+    //High Temp to trigger Fans
+    if (t > thresholdTH)  //if the soil is try then pump out water for 1 second
+    {
+    digitalWrite(fanin, LOW);
+    digitalWrite(fanout, LOW);
+    Serial.println("fans on");
+    }
+    else
+    {
+    (t <= thresholdT);
+    digitalWrite(fanin, HIGH);
+    digitalWrite(fanout, HIGH);
+    Serial.println("fans off");
+    }
+
+    //LCD Display for Heater On/Off
+    if (t<24)  //if the soil is try then pump out water for 1 second
+    {
+    Serial.println("heater on");
+    lcd.setCursor(0,1);
+    lcd.print("Heater ON ");
+    }
+    if (t>=24)  //if the soil is try then pump out water for 1 second
+    {
+    Serial.println("heater off");
+    lcd.setCursor(0,1);
+    lcd.print("         ");
+    }
+
+        //LCD Display For Fans On/Off
+    if (t>=26)  //if the soil is try then pump out water for 1 second
+    {
+    Serial.println("fans on");
+    lcd.setCursor(0,2);
+    lcd.print("Fans ON");
+    }
+    if (t<=23)  //if the soil is try then pump out water for 1 second
+    {
+    Serial.println("fans off");
+    lcd.setCursor(0,2);
+    lcd.print("       ");
+    }
+    
+    
+    h = dht.readHumidity();
+    t = dht.readTemperature();
+    
+    //Print temp and humidity values to serial monitor
+    Serial.print("Humidity: ");
+    Serial.print(h);
+    Serial.print(" %, Temp: ");
+    Serial.print(t);
+    Serial.println(" ° Celsius");
+        
+// set the cursor to (0,0):
+// print from 0 to 9:
+     
+    lcd.setCursor(0, 0);
+    lcd.print("Temp:");
+    lcd.print(t);
+    lcd.print("C");
+
+    lcd.setCursor(10, 0);
+    lcd.print("Humid:");
+    lcd.print(h);
+    lcd.print("%");
+    
+  delay(1000); //Delay 1 sec.
+}
